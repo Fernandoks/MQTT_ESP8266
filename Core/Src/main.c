@@ -24,7 +24,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
 #include "UartRingbuffer_multi.h"
+#include "mytasks.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -34,7 +36,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-//#define RTOS_ON
+
+#define RTOS_ON
+
 #define pc_uart 	&huart2
 #define wifi_uart 	&huart1
 
@@ -49,7 +53,17 @@
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
-osThreadId defaultTaskHandle;
+osThreadId UART1_TaskHandler;
+osThreadId UART2_TaskHandler;
+
+osMessageQId UART1_Queue;
+osMessageQId UART2_Queue;
+
+uint8_t UART1_RX_Buffer;
+uint8_t UART1_TX_Buffer;
+uint8_t UART2_RX_Buffer;
+uint8_t UART2_TX_Buffer;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -59,7 +73,8 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART1_UART_Init(void);
-void StartDefaultTask(void const * argument);
+
+
 
 /* USER CODE BEGIN PFP */
 
@@ -103,7 +118,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
-
+#ifdef RTOS_ON
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
@@ -118,12 +133,21 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
+  osMessageQDef(uart1queue, 64, uint32_t);
+  UART1_Queue = osMessageCreate (osMessageQ(uart1queue), NULL);
+
+  osMessageQDef(uart2queue, 64, uint32_t);
+  UART2_Queue = osMessageCreate (osMessageQ(uart2queue), NULL);
+
   /* USER CODE END RTOS_QUEUES */
-#ifdef RTOS_ON
+
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  osThreadDef(UART1task, StartUART1task, osPriorityNormal, 0, 128);
+  UART1_TaskHandler = osThreadCreate(osThread(UART1task), NULL);
+
+  osThreadDef(UART2task, StartUART2task, osPriorityNormal, 0, 128);
+  UART2_TaskHandler = osThreadCreate(osThread(UART2task), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -136,12 +160,37 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  Ringbuf_init();
+  //Ringbuf_init();
+
+  /*
+   * Starting TX and RX form UART1 and UART2
+   */
+
+
+  if(HAL_UART_Transmit_IT(&huart1, (uint8_t*)UART1_TX_Buffer, sizeof(UART1_TX_Buffer))!= HAL_OK)
+  {
+    Error_Handler();
+  }
+  if(HAL_UART_Receive_IT(&huart1, (uint8_t *)UART1_RX_Buffer, sizeof(UART1_RX_Buffer)) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  if(HAL_UART_Transmit_IT(&huart2, (uint8_t*)UART2_TX_Buffer, sizeof(UART1_TX_Buffer))!= HAL_OK)
+  {
+    Error_Handler();
+  }
+  if(HAL_UART_Receive_IT(&huart2, (uint8_t *)UART2_RX_Buffer, sizeof(UART1_RX_Buffer)) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+
 
   while (1)
   {
     /* USER CODE END WHILE */
-
+/*
 	  if (IsDataAvailable(pc_uart))
 	  {
 		  uint32_t data = Uart_read(pc_uart);
@@ -153,7 +202,7 @@ int main(void)
 		  uint32_t data = Uart_read(wifi_uart);
 		  Uart_write(data, pc_uart);
 	  }
-
+*/
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -318,16 +367,37 @@ static void MX_GPIO_Init(void)
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END 5 */ 
+
+	if(UartHandle -> Instance == pc_uart.Instance)
+	{
+		if(osMessagePut (UART1_Queue, UART2_RX_Buffer, 100) != osOK)
+		{
+		  Error_Handler();
+		}
+		HAL_UART_Receive_IT(&huart2, UART2_RX_Buffer, sizeof(UART2_RX_Buffer));
+	}
+	if(UartHandle -> Instance == wifi_uart.Instance)
+	{
+		if(osMessagePut (UART2_RX_Buffer, UART1_RX_Buffer, 100) != osOK)
+		{
+		  Error_Handler();
+		}
+		HAL_UART_Receive_IT(&huart1, UART1_RX_Buffer, sizeof(UART1_RX_Buffer));
+	}
 }
+
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+	__NOP();
+}
+
+
+  /* USER CODE END 5 */ 
+
 
  /**
   * @brief  Period elapsed callback in non blocking mode

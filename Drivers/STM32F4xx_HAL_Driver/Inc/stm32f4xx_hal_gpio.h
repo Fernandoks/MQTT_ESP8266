@@ -21,6 +21,7 @@
 #ifndef __STM32F4xx_HAL_GPIO_H
 #define __STM32F4xx_HAL_GPIO_H
 
+
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -61,6 +62,8 @@ typedef struct
   uint32_t Alternate;  /*!< Peripheral to be connected to the selected pins. 
                             This parameter can be a value of @ref GPIO_Alternate_function_selection */
 }GPIO_InitTypeDef;
+
+
 
 /** 
   * @brief  GPIO Bit SET and Bit RESET enumeration 

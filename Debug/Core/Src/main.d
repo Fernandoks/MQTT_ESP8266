@@ -44,7 +44,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
- ../Core/Inc/UartRingbuffer_multi.h
+ ../Core/Inc/UartRingbuffer_multi.h ../Core/Inc/mytasks.h
 
 ../Core/Inc/main.h:
 
@@ -139,3 +139,5 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
 
 ../Core/Inc/UartRingbuffer_multi.h:
+
+../Core/Inc/mytasks.h:
