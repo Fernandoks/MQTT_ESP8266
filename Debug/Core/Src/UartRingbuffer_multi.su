@@ -1,0 +1,11 @@
+UartRingbuffer_multi.c:43:6:Ringbuf_init	4	static
+UartRingbuffer_multi.c:59:6:store_char	24	static
+UartRingbuffer_multi.c:73:5:Uart_read	24	static
+UartRingbuffer_multi.c:108:6:Uart_write	24	static
+UartRingbuffer_multi.c:142:5:IsDataAvailable	16	static
+UartRingbuffer_multi.c:149:10:Get_position	48	static
+UartRingbuffer_multi.c:209:5:Get_after	40	static
+UartRingbuffer_multi.c:248:6:Uart_sendstring	16	static
+UartRingbuffer_multi.c:253:6:Uart_printbase	72	static
+UartRingbuffer_multi.c:273:6:Get_string	48	static
+UartRingbuffer_multi.c:325:6:Uart_isr	32	static
