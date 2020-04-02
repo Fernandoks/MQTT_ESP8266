@@ -39,8 +39,8 @@
 
 #define RTOS_ON
 
-#define pc_uart 	&huart2
-#define wifi_uart 	&huart1
+#define pc_uart 	huart2
+#define wifi_uart 	huart1
 
 /* USER CODE END PD */
 
@@ -59,10 +59,10 @@ osThreadId UART2_TaskHandler;
 osMessageQId UART1_Queue;
 osMessageQId UART2_Queue;
 
-uint8_t UART1_RX_Buffer;
-uint8_t UART1_TX_Buffer;
-uint8_t UART2_RX_Buffer;
-uint8_t UART2_TX_Buffer;
+uint8_t UART1_RX_Buffer[10] = {0};
+uint8_t UART1_TX_Buffer[10] = {0};
+uint8_t UART2_RX_Buffer[10] = {0};
+uint8_t UART2_TX_Buffer[10] = {0};
 
 /* USER CODE BEGIN PV */
 
@@ -153,20 +153,11 @@ int main(void)
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
-  /* Start scheduler */
-  osKernelStart();
-#endif
-  /* We should never get here as control is now taken by the scheduler */
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-
-  //Ringbuf_init();
-
   /*
    * Starting TX and RX form UART1 and UART2
    */
 
-
+/*
   if(HAL_UART_Transmit_IT(&huart1, (uint8_t*)UART1_TX_Buffer, sizeof(UART1_TX_Buffer))!= HAL_OK)
   {
     Error_Handler();
@@ -184,6 +175,19 @@ int main(void)
   {
     Error_Handler();
   }
+*/
+  __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
+  __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
+
+  /* Start scheduler */
+  osKernelStart();
+#endif
+  /* We should never get here as control is now taken by the scheduler */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+
+  //Ringbuf_init();
+
 
 
 
@@ -370,23 +374,26 @@ static void MX_GPIO_Init(void)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
-
-	if(UartHandle -> Instance == pc_uart.Instance)
+	/*
+	if(UartHandle -> Instance == huart2.Instance)
 	{
 		if(osMessagePut (UART1_Queue, UART2_RX_Buffer, 100) != osOK)
 		{
 		  Error_Handler();
 		}
-		HAL_UART_Receive_IT(&huart2, UART2_RX_Buffer, sizeof(UART2_RX_Buffer));
+
 	}
-	if(UartHandle -> Instance == wifi_uart.Instance)
+	if(UartHandle -> Instance == huart1.Instance)
 	{
-		if(osMessagePut (UART2_RX_Buffer, UART1_RX_Buffer, 100) != osOK)
+		if(osMessagePut (UART2_Queue, UART1_RX_Buffer, 100) != osOK)
 		{
 		  Error_Handler();
 		}
-		HAL_UART_Receive_IT(&huart1, UART1_RX_Buffer, sizeof(UART1_RX_Buffer));
+
 	}
+	HAL_UART_Receive_IT(&huart2, UART2_RX_Buffer, sizeof(UART2_RX_Buffer));
+	HAL_UART_Receive_IT(&huart1, UART1_RX_Buffer, sizeof(UART1_RX_Buffer));
+	*/
 }
 
 

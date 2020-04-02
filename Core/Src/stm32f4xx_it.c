@@ -21,7 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_it.h"
-#include "FreeRTOS.h"
+#include "cmsis_os.h"
 #include "task.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -61,6 +61,9 @@ extern void Uart_isr (UART_HandleTypeDef *huart);
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern TIM_HandleTypeDef htim6;
+
+extern osMessageQId UART1_Queue;
+extern osMessageQId UART2_Queue;
 
 /* USER CODE BEGIN EV */
 
@@ -169,6 +172,20 @@ void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
 	//Uart_isr(&huart1);
+	//Uart_isr(&huart2);
+	volatile uint32_t UsartSR = USART1->SR;
+	if ( (UsartSR) & USART_SR_RXNE )
+	{
+		volatile uint32_t UsartDR = USART1->DR;
+		if(osMessagePut (UART2_Queue, UsartDR, 100) != osOK)
+		{
+			Error_Handler();
+		}
+		(USART1->SR) &= ~(1UL << 5U);
+	}
+
+
+	return;
   /* USER CODE END USART1_IRQn 0 */
 	HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
@@ -183,6 +200,16 @@ void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
 	//Uart_isr(&huart2);
+	 volatile uint32_t UsartSR = USART2->SR;
+	 volatile uint32_t UsartDR = USART2->DR;
+
+
+	if(osMessagePut (UART1_Queue, UsartDR, 100) != osOK)
+	{
+		Error_Handler();
+	}
+
+	 return;
   /* USER CODE END USART2_IRQn 0 */
 	HAL_UART_IRQHandler(&huart2);
 

@@ -26,7 +26,8 @@ void StartUART1task(void const * argument)
 		{
 			temp = event.value.v;
 		}
-		HAL_UART_Transmit_IT(&huart1, temp, sizeof(temp));
+		HAL_UART_Transmit(&huart1,&temp, sizeof(temp), 100);
+		//HAL_UART_Transmit_IT(&huart1, temp, sizeof(temp));
 		//osDelay(1);
 	}
 
@@ -47,7 +48,8 @@ void StartUART2task(void const * argument)
 		{
 			temp = event.value.v;
 		}
-		HAL_UART_Transmit_IT(&huart1, temp, sizeof(temp));
+		HAL_UART_Transmit(&huart2,&temp, sizeof(temp), 100);
+		//HAL_UART_Transmit_IT(&huart1, temp, sizeof(temp));
 		//osDelay(1);
 	}
 
