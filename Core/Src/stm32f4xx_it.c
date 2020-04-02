@@ -34,7 +34,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
- 
+#define device_uart &huart1
+#define pc_uart &huart2
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -171,20 +172,7 @@ void DebugMon_Handler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-	//Uart_isr(&huart1);
-	//Uart_isr(&huart2);
-	volatile uint32_t UsartSR = USART1->SR;
-	if ( (UsartSR) & USART_SR_RXNE )
-	{
-		volatile uint32_t UsartDR = USART1->DR;
-		if(osMessagePut (UART2_Queue, UsartDR, 100) != osOK)
-		{
-			Error_Handler();
-		}
-		(USART1->SR) &= ~(1UL << 5U);
-	}
-
-
+	Uart_isr(device_uart);
 	return;
   /* USER CODE END USART1_IRQn 0 */
 	HAL_UART_IRQHandler(&huart1);
@@ -200,16 +188,8 @@ void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
 	//Uart_isr(&huart2);
-	 volatile uint32_t UsartSR = USART2->SR;
-	 volatile uint32_t UsartDR = USART2->DR;
-
-
-	if(osMessagePut (UART1_Queue, UsartDR, 100) != osOK)
-	{
-		Error_Handler();
-	}
-
-	 return;
+	Uart_isr(pc_uart);
+	return;
   /* USER CODE END USART2_IRQn 0 */
 	HAL_UART_IRQHandler(&huart2);
 
@@ -233,6 +213,119 @@ void TIM6_DAC_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+
+void Uart_isr (UART_HandleTypeDef *huart)
+{
+	  uint32_t isrflags   = READ_REG(huart->Instance->SR);
+	  uint32_t cr1its     = READ_REG(huart->Instance->CR1);
+
+    /* if DR is not empty and the Rx Int is enabled */
+    if (((isrflags & USART_SR_RXNE) != RESET) && ((cr1its & USART_CR1_RXNEIE) != RESET))
+    {
+    	 /******************
+    	    	      *  @note   PE (Parity error), FE (Framing error), NE (Noise error), ORE (Overrun
+    	    	      *          error) and IDLE (Idle line detected) flags are cleared by software
+    	    	      *          sequence: a read operation to USART_SR register followed by a read
+    	    	      *          operation to USART_DR register.
+    	    	      * @note   RXNE flag can be also cleared by a read to the USART_DR register.
+    	    	      * @note   TC flag can be also cleared by software sequence: a read operation to
+    	    	      *          USART_SR register followed by a write operation to USART_DR register.
+    	    	      * @note   TXE flag is cleared only by a write to the USART_DR register.
+
+    	 *********************/
+		huart->Instance->SR;                       /* Read status register */
+        unsigned char c = huart->Instance->DR;     /* Read data register */
+        if (huart == device_uart)
+        {
+        	if(osMessagePut (UART2_Queue, c, 10) != osOK)
+			{
+			  Error_Handler();
+			}
+        }
+
+        else if (huart == pc_uart)
+        {
+           	if(osMessagePut (UART1_Queue, c, 10) != osOK)
+			{
+			  Error_Handler();
+			}
+        }
+
+        return;
+    }
+
+    /*If interrupt is caused due to Transmit Data Register Empty */
+    if (((isrflags & USART_SR_TXE) != RESET) && ((cr1its & USART_CR1_TXEIE) != RESET))
+    {
+    	__HAL_UART_DISABLE_IT(huart, UART_IT_TXE);
+#if 0
+    	if (huart == device_uart){
+    	if(tx_buffer1.head == tx_buffer1.tail)
+    	    {
+    	      // Buffer empty, so disable interrupts
+    	      __HAL_UART_DISABLE_IT(huart, UART_IT_TXE);
+
+    	    }
+
+    	 else
+    	    {
+    	      // There is more data in the output buffer. Send the next byte
+    	      unsigned char c = tx_buffer1.buffer[tx_buffer1.tail];
+    	      tx_buffer1.tail = (tx_buffer1.tail + 1) % UART_BUFFER_SIZE;
+
+    	      /******************
+    	      *  @note   PE (Parity error), FE (Framing error), NE (Noise error), ORE (Overrun
+    	      *          error) and IDLE (Idle line detected) flags are cleared by software
+    	      *          sequence: a read operation to USART_SR register followed by a read
+    	      *          operation to USART_DR register.
+    	      * @note   RXNE flag can be also cleared by a read to the USART_DR register.
+    	      * @note   TC flag can be also cleared by software sequence: a read operation to
+    	      *          USART_SR register followed by a write operation to USART_DR register.
+    	      * @note   TXE flag is cleared only by a write to the USART_DR register.
+
+    	      *********************/
+
+    	      huart->Instance->SR;
+    	      huart->Instance->DR = c;
+
+    	    }
+    	}
+
+    	else if (huart == pc_uart){
+        	if(tx_buffer2.head == tx_buffer2.tail)
+        	    {
+        	      // Buffer empty, so disable interrupts
+        	      __HAL_UART_DISABLE_IT(huart, UART_IT_TXE);
+
+        	    }
+
+        	 else
+        	    {
+        	      // There is more data in the output buffer. Send the next byte
+        	      unsigned char c = tx_buffer2.buffer[tx_buffer2.tail];
+        	      tx_buffer2.tail = (tx_buffer2.tail + 1) % UART_BUFFER_SIZE;
+
+        	      /******************
+        	      *  @note   PE (Parity error), FE (Framing error), NE (Noise error), ORE (Overrun
+        	      *          error) and IDLE (Idle line detected) flags are cleared by software
+        	      *          sequence: a read operation to USART_SR register followed by a read
+        	      *          operation to USART_DR register.
+        	      * @note   RXNE flag can be also cleared by a read to the USART_DR register.
+        	      * @note   TC flag can be also cleared by software sequence: a read operation to
+        	      *          USART_SR register followed by a write operation to USART_DR register.
+        	      * @note   TXE flag is cleared only by a write to the USART_DR register.
+
+        	      *********************/
+
+        	      huart->Instance->SR;
+        	      huart->Instance->DR = c;
+
+        	    }
+        	}
+    	return;
+#endif
+    }
+}
 
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -55,6 +55,7 @@ UART_HandleTypeDef huart2;
 
 osThreadId UART1_TaskHandler;
 osThreadId UART2_TaskHandler;
+osThreadId Default_TaskHandler;
 
 osMessageQId UART1_Queue;
 osMessageQId UART2_Queue;
@@ -98,7 +99,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -149,6 +150,9 @@ int main(void)
   osThreadDef(UART2task, StartUART2task, osPriorityNormal, 0, 128);
   UART2_TaskHandler = osThreadCreate(osThread(UART2task), NULL);
 
+  osThreadDef(Defaulttask, StartDefaulttask, osPriorityNormal, 0, 128);
+  Default_TaskHandler = osThreadCreate(osThread(Defaulttask), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -157,25 +161,6 @@ int main(void)
    * Starting TX and RX form UART1 and UART2
    */
 
-/*
-  if(HAL_UART_Transmit_IT(&huart1, (uint8_t*)UART1_TX_Buffer, sizeof(UART1_TX_Buffer))!= HAL_OK)
-  {
-    Error_Handler();
-  }
-  if(HAL_UART_Receive_IT(&huart1, (uint8_t *)UART1_RX_Buffer, sizeof(UART1_RX_Buffer)) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  if(HAL_UART_Transmit_IT(&huart2, (uint8_t*)UART2_TX_Buffer, sizeof(UART1_TX_Buffer))!= HAL_OK)
-  {
-    Error_Handler();
-  }
-  if(HAL_UART_Receive_IT(&huart2, (uint8_t *)UART2_RX_Buffer, sizeof(UART1_RX_Buffer)) != HAL_OK)
-  {
-    Error_Handler();
-  }
-*/
   __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
   __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
 
