@@ -56,9 +56,14 @@ UART_HandleTypeDef huart2;
 osThreadId UART1_TaskHandler;
 osThreadId UART2_TaskHandler;
 osThreadId Default_TaskHandler;
+osThreadId Command_TaskHandler;
 
 osMessageQId UART1_Queue;
 osMessageQId UART2_Queue;
+
+osMailQId  command_mail;
+
+
 
 uint8_t UART1_RX_Buffer[10] = {0};
 uint8_t UART1_TX_Buffer[10] = {0};
@@ -140,6 +145,9 @@ int main(void)
   osMessageQDef(uart2queue, 64, uint32_t);
   UART2_Queue = osMessageCreate (osMessageQ(uart2queue), NULL);
 
+  osMailQDef(command_mail, 16, CommandMail_t);
+  command_mail = osMailCreate(osMailQ(command_mail), NULL);
+
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -149,6 +157,9 @@ int main(void)
 
   osThreadDef(UART2task, StartUART2task, osPriorityNormal, 0, 128);
   UART2_TaskHandler = osThreadCreate(osThread(UART2task), NULL);
+
+  osThreadDef(Commandtask, StartCommandtask, osPriorityNormal, 0, 128);
+  Command_TaskHandler = osThreadCreate(osThread(Commandtask), NULL);
 
   osThreadDef(Defaulttask, StartDefaulttask, osPriorityNormal, 0, 128);
   Default_TaskHandler = osThreadCreate(osThread(Defaulttask), NULL);

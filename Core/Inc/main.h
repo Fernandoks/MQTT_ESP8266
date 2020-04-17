@@ -37,6 +37,13 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+typedef struct {                                 // Mail object structure
+	uint8_t* commandstring;	 				     //Command
+	uint8_t Direction;							 //Send = 0, Receive = 1;
+	uint8_t senderID;							 //Define a sender ID
+	uint32_t size;								 //Variable size protocol
+} CommandMail_t;
+
 
 /* USER CODE END ET */
 

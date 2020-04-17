@@ -12,5 +12,7 @@
 void StartDefaulttask(void const * argument);
 void StartUART1task(void const * argument);
 void StartUART2task(void const * argument);
+void StartCommandtask(void const * argument);
+
 
 #endif /* INC_MYTASKS_H_ */
