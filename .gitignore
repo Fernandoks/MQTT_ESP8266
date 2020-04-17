@@ -56,10 +56,12 @@ dkms.conf
 .project
 .settings/
 
-#Debug
-Debug/
+
+.Debug/
 Debug
 Debug.*
+
+
 
 # Vagrant directory
 .vagrant/

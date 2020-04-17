@@ -53,13 +53,13 @@
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
-osThreadId UART1_TaskHandler;
-osThreadId UART2_TaskHandler;
+osThreadId Device_TaskHandler;
+osThreadId PC_TaskHandler;
 osThreadId Default_TaskHandler;
 osThreadId Command_TaskHandler;
 
-osMessageQId UART1_Queue;
-osMessageQId UART2_Queue;
+osMessageQId Device_Queue;
+osMessageQId PC_Queue;
 
 osMailQId  command_mail;
 
@@ -139,11 +139,13 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-  osMessageQDef(uart1queue, 64, uint32_t);
-  UART1_Queue = osMessageCreate (osMessageQ(uart1queue), NULL);
 
-  osMessageQDef(uart2queue, 64, uint32_t);
-  UART2_Queue = osMessageCreate (osMessageQ(uart2queue), NULL);
+
+  osMessageQDef(devicequeue, 64, uint32_t);
+  Device_Queue = osMessageCreate (osMessageQ(devicequeue), NULL);
+
+  osMessageQDef(pcqueue, 64, uint32_t);
+  PC_Queue = osMessageCreate (osMessageQ(pcqueue), NULL);
 
   osMailQDef(command_mail, 16, CommandMail_t);
   command_mail = osMailCreate(osMailQ(command_mail), NULL);
@@ -152,11 +154,13 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(UART1task, StartUART1task, osPriorityNormal, 0, 128);
-  UART1_TaskHandler = osThreadCreate(osThread(UART1task), NULL);
 
-  osThreadDef(UART2task, StartUART2task, osPriorityNormal, 0, 128);
-  UART2_TaskHandler = osThreadCreate(osThread(UART2task), NULL);
+
+  osThreadDef(DeviceTask, StartDeviceTask, osPriorityNormal, 0, 128);
+  Device_TaskHandler = osThreadCreate(osThread(DeviceTask), NULL);
+
+  osThreadDef(PCTask, StartPCTask, osPriorityNormal, 0, 128);
+  PC_TaskHandler = osThreadCreate(osThread(PCTask), NULL);
 
   osThreadDef(Commandtask, StartCommandtask, osPriorityNormal, 0, 128);
   Command_TaskHandler = osThreadCreate(osThread(Commandtask), NULL);

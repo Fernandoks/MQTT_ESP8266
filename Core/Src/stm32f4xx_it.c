@@ -63,8 +63,8 @@ extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern TIM_HandleTypeDef htim6;
 
-extern osMessageQId UART1_Queue;
-extern osMessageQId UART2_Queue;
+extern osMessageQId Device_Queue;
+extern osMessageQId PC_Queue;
 
 /* USER CODE BEGIN EV */
 
@@ -235,17 +235,17 @@ void Uart_isr (UART_HandleTypeDef *huart)
     	 *********************/
 		huart->Instance->SR;                       /* Read status register */
         unsigned char c = huart->Instance->DR;     /* Read data register */
-        if (huart == device_uart)
+        if (huart == device_uart)  //You received inform from the device
         {
-        	if(osMessagePut (UART2_Queue, c, 10) != osOK)
+        	if(osMessagePut (Device_Queue, c, 10) != osOK)
 			{
 			  Error_Handler();
 			}
         }
 
-        else if (huart == pc_uart)
+        else if (huart == pc_uart) //information from PC
         {
-           	if(osMessagePut (UART1_Queue, c, 10) != osOK)
+           	if(osMessagePut (PC_Queue, c, 10) != osOK)
 			{
 			  Error_Handler();
 			}

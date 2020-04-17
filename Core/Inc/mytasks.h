@@ -10,8 +10,8 @@
 
 
 void StartDefaulttask(void const * argument);
-void StartUART1task(void const * argument);
-void StartUART2task(void const * argument);
+void StartDeviceTask(void const * argument);
+void StartPCTask(void const * argument);
 void StartCommandtask(void const * argument);
 
 
