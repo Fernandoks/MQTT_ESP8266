@@ -44,7 +44,7 @@ void StartUART1task(void const * argument)
 
 	uint32_t temp = 0;
 	uint32_t buffer_size = 0;
-	uint8_t* buffer = (uint8_t*)malloc(3*sizeof(uint8_t));
+	uint8_t buffer[64] = {0};
 
 
 	while(1)
@@ -56,24 +56,18 @@ void StartUART1task(void const * argument)
 		}
 		if (temp == '\n')
 		{
+			buffer[buffer_size] = temp;
+			buffer_size++;
 			mptr->Direction = 1;
 			mptr->senderID = 0x01;
 			mptr->size = buffer_size + 1;
 			mptr->commandstring = buffer;
 			osMailPut(command_mail, mptr);
-
-			free(buffer);
-			buffer_size = 0;
-			uint8_t* buffer = (uint8_t*) malloc(3*sizeof(uint8_t));
-
 		}
 		else
 		{
-			*buffer = temp;
-			buffer++;
+			buffer[buffer_size] = temp;
 			buffer_size++;
-			buffer = (uint8_t *)realloc(buffer, (buffer_size+3) * sizeof(uint8_t));
-
 		}
 
 		//HAL_UART_Transmit(&huart1,&Buffer, sizeof(Buffer), 100);
@@ -100,6 +94,7 @@ void StartUART2task(void const * argument)
 		HAL_UART_Transmit(&huart2,&Buffer, sizeof(Buffer), 100);
 		//HAL_UART_Transmit_IT(&huart1, temp, sizeof(temp));
 		//osDelay(1);
+
 	}
 
 
@@ -118,6 +113,7 @@ void StartCommandtask(void const * argument)
 	    {
 	    	rptr = event.value.p;
 	    	HAL_UART_Transmit(&huart1,rptr->commandstring, rptr->size, 100);
+			osMailFree(command_mail, rptr);
 	    }
 	}
 }
