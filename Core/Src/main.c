@@ -162,7 +162,7 @@ int main(void)
   osThreadDef(PCTask, StartPCTask, osPriorityNormal, 0, 128);
   PC_TaskHandler = osThreadCreate(osThread(PCTask), NULL);
 
-  osThreadDef(Commandtask, StartCommandtask, osPriorityNormal, 0, 128);
+  osThreadDef(Commandtask, StartCommandtask, osPriorityAboveNormal, 0, 128);
   Command_TaskHandler = osThreadCreate(osThread(Commandtask), NULL);
 
   osThreadDef(Defaulttask, StartDefaulttask, osPriorityNormal, 0, 128);
@@ -397,11 +397,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
 }
 
 
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
-{
-	__NOP();
+
+/*
+
 }
 
+*/
 
   /* USER CODE END 5 */ 
 
